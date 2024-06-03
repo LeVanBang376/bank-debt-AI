@@ -48,13 +48,20 @@ async def hello(data: Data):
 @app.post("/train", tags=["Root"])
 async def trainModel(data: TrainData):
     try:
+        count = len(data.xTrain)
+        trainCount = round(count*0.7)
         clf = RandomForest(n_trees=10)
-        xTrainData = np.array(data.xTrain)
-        yTrainData = np.array(data.yTrain)
+        xTrainData = np.array(data.xTrain[:trainCount])
+        yTrainData = np.array(data.yTrain[:trainCount])
+        xTestData = np.array(data.xTrain[trainCount:])
+        yTestData = np.array(data.yTrain[trainCount:])
         clf.fit(xTrainData, yTrainData)
         dump(clf, 'random_forest_model.joblib')
+        predictions = clf.predict(xTestData)
+        acc =  accuracy(yTestData, predictions)    
         return {
-            "result": "success"
+            "result": "success",
+            "accuracy": str(acc)
         }
     except Exception as e:
         print(str(e))
